@@ -1,6 +1,14 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Defaults:
+// - In production builds with no env var → '/api' (relative, same-origin —
+//   works when the backend serves the frontend build).
+// - In local development → 'http://localhost:5000/api' (the dev backend).
+const DEFAULT_API_URL =
+  process.env.NODE_ENV === 'production'
+    ? '/api'
+    : 'http://localhost:5000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || DEFAULT_API_URL;
 
 const api = axios.create({
   baseURL: API_BASE_URL

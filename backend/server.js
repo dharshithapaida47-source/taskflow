@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -61,10 +63,30 @@ mongoose.connect(process.env.MONGODB_URI)
     app.use('/api/projects', require('./routes/projectRoutes'));
     app.use('/api/tasks', require('./routes/taskRoutes'));
 
-    // Basic route
-    app.get('/', (req, res) => {
-      res.json({ message: 'Team Task Manager API' });
-    });
+    // ----- Serve the React frontend in production -----
+    // If frontend/build exists (i.e. the frontend has been built — done either
+    // by `npm run build` locally or by the postinstall hook on Railway), the
+    // backend also serves the SPA. Single URL hosts both API and UI.
+    const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'build');
+    const frontendIndex = path.join(frontendBuildPath, 'index.html');
+
+    if (fs.existsSync(frontendIndex)) {
+      app.use(express.static(frontendBuildPath));
+
+      // Catch-all for client-side routes (anything NOT starting with /api)
+      app.get(/^\/(?!api\/).*/, (req, res) => {
+        res.sendFile(frontendIndex);
+      });
+
+      console.log('Serving React build from', frontendBuildPath);
+    } else {
+      // No frontend build available — keep the JSON landing page so /api/health
+      // checks still work cleanly.
+      app.get('/', (req, res) => {
+        res.json({ message: 'Team Task Manager API' });
+      });
+      console.log('No frontend build found; running in API-only mode.');
+    }
 
     // Error handling
     app.use((err, req, res, next) => {
