@@ -1,0 +1,276 @@
+/* ---------- Page header ---------- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.dashboard-header-text h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.dashboard-header-text p {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+/* ---------- Stats ---------- */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+.stat-card {
+  position: relative;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: transparent;
+}
+
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.stat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.stat-card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.stat-card-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-card-todo .stat-card-icon {
+  background-color: var(--color-status-todo-bg);
+  color: var(--color-status-todo-text);
+}
+.stat-card-todo::before { background-color: var(--color-status-todo-text); }
+
+.stat-card-progress .stat-card-icon {
+  background-color: var(--color-status-progress-bg);
+  color: var(--color-status-progress-text);
+}
+.stat-card-progress::before { background-color: var(--color-status-progress-text); }
+
+.stat-card-done .stat-card-icon {
+  background-color: var(--color-status-done-bg);
+  color: var(--color-status-done-text);
+}
+.stat-card-done::before { background-color: var(--color-status-done-text); }
+
+.stat-card-overdue .stat-card-icon {
+  background-color: var(--color-status-overdue-bg);
+  color: var(--color-status-overdue-text);
+}
+.stat-card-overdue::before { background-color: var(--color-danger); }
+
+.stat-card-overdue.has-overdue {
+  border-color: #fecaca;
+  background: linear-gradient(135deg, #fff5f5, #ffffff);
+}
+
+.stat-card-overdue.has-overdue .stat-card-value {
+  color: var(--color-danger);
+}
+
+/* ---------- Create task card ---------- */
+.dashboard-create-card {
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-create-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+}
+
+.dashboard-create-form .form-group {
+  margin-bottom: 0;
+}
+
+.dashboard-create-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+/* Modal create-task: 2-col row for project + due date */
+.dashboard-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 520px) {
+  .dashboard-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Kanban board ---------- */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.kanban-column {
+  background-color: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 200px;
+}
+
+.kanban-column-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+
+.kanban-column-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-secondary);
+}
+
+.kanban-column-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.kanban-column-dot-todo { background-color: var(--color-status-todo-text); }
+.kanban-column-dot-progress { background-color: var(--color-status-progress-text); }
+.kanban-column-dot-done { background-color: var(--color-status-done-text); }
+
+.kanban-column-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.kanban-column-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
+
+.kanban-empty {
+  padding: var(--space-6) var(--space-3);
+  text-align: center;
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: 13px;
+  background-color: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.kanban-empty-icon {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+@media (max-width: 1100px) {
+  .kanban-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Pagination ---------- */
+.dashboard-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+}
+
+.dashboard-pagination-info {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}

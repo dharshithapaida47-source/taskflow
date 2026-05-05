@@ -1,0 +1,171 @@
+.top-header {
+  grid-area: header;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  height: var(--header-height);
+}
+
+/* ---------- Left: brand ---------- */
+.top-header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+.top-header-brand:hover { text-decoration: none; }
+
+.top-header-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.top-header-name {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* ---------- Right: user + logout grouped ---------- */
+.top-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.top-header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 5px var(--space-3) 5px 5px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-alt);
+  min-width: 0;
+}
+
+.top-header-avatar {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--color-primary-soft-2), var(--color-primary-soft));
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  border: 1px solid #fff;
+}
+
+/* Role dot sits on the avatar (online-status style) */
+.top-header-role-dot {
+  position: absolute;
+  bottom: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-text-muted);
+  border: 2px solid var(--color-surface-alt);
+}
+.top-header-role-dot.is-admin {
+  background-color: var(--color-success);
+}
+
+.top-header-user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.top-header-greeting {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+
+.top-header-user-role {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Logout button (top-right) ---------- */
+.top-header-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 8px 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.top-header-logout:hover {
+  background-color: var(--color-danger-soft);
+  color: var(--color-danger);
+  border-color: #fca5a5;
+}
+
+/* ---------- Responsive collapse ---------- */
+@media (max-width: 900px) {
+  .top-header {
+    padding: 0 var(--space-4);
+  }
+  .top-header-user {
+    padding: 4px;
+    gap: 0;
+  }
+  .top-header-user-text {
+    display: none;
+  }
+  .top-header-logout-label {
+    display: none;
+  }
+  .top-header-logout {
+    padding: 8px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .top-header-name {
+    display: none;
+  }
+}

@@ -1,0 +1,71 @@
+.theme-toggle {
+  --toggle-w: 56px;
+  --toggle-h: 28px;
+  --toggle-pad: 3px;
+  --thumb: calc(var(--toggle-h) - var(--toggle-pad) * 2);
+
+  position: relative;
+  width: var(--toggle-w);
+  height: var(--toggle-h);
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background-color: var(--color-surface-alt);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition:
+    background-color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--color-primary);
+}
+
+.theme-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-soft-2);
+}
+
+/* The sliding thumb */
+.theme-toggle-thumb {
+  position: absolute;
+  top: var(--toggle-pad);
+  left: var(--toggle-pad);
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warning);
+  transition:
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.25s ease,
+    background-color 0.25s ease;
+}
+
+[data-theme="dark"] .theme-toggle-thumb {
+  transform: translateX(calc(var(--toggle-w) - var(--thumb) - var(--toggle-pad) * 2));
+  color: var(--color-primary);
+}
+
+/* Background icons (faded) on the unselected side */
+.theme-toggle-side {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.theme-toggle-side svg {
+  width: 12px;
+  height: 12px;
+}
