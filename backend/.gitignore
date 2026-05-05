@@ -2,3 +2,6 @@ node_modules/
 .env
 .DS_Store
 *.log
+
+# uploaded task attachments (user data — do not commit)
+uploads/

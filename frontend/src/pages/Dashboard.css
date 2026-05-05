@@ -274,3 +274,127 @@
   font-size: 13px;
   color: var(--color-text-secondary);
 }
+
+/* ---------- Work-type filter chips ---------- */
+.worktype-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  padding: var(--space-2);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.worktype-chip {
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.worktype-chip:hover {
+  background-color: var(--color-surface-alt);
+  color: var(--color-text);
+}
+
+.worktype-chip.is-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+/* Hint shown under the assignee picker when the chosen user
+   isn't on the project team yet (they get auto-added on submit). */
+.assignee-auto-add-hint {
+  margin-top: var(--space-2);
+  padding: 8px 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-info-soft);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+}
+
+/* ---------- Attachment file input (modal) ---------- */
+.form-label-hint {
+  font-weight: 400;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.file-dropzone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 2px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background-color: var(--color-surface-alt);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.file-dropzone:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-soft);
+}
+
+.file-dropzone-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.file-dropzone-text {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.file-dropzone-text strong {
+  color: var(--color-primary);
+}
+
+.file-selected {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.file-selected-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.file-selected-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-selected-name {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.file-selected-size {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}

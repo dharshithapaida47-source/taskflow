@@ -5,7 +5,7 @@ import './Sidebar.css';
 
 const navLinks = [
   { to: '/dashboard', label: 'Dashboard', Icon: HomeIcon },
-  { to: '/projects', label: 'Projects', Icon: FolderIcon }
+  { to: '/projects', label: 'My Projects', Icon: FolderIcon }
 ];
 
 const Sidebar = () => {

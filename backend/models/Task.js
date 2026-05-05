@@ -10,6 +10,18 @@ const taskSchema = new mongoose.Schema({
     default: '',
     maxlength: [1000, 'Description must be under 1000 characters']
   },
+  workType: {
+    type: String,
+    enum: ['frontend', 'backend', 'fullstack', 'testing', 'design'],
+    default: 'fullstack'
+  },
+  attachment: {
+    filename: String,        // stored filename on disk (random)
+    originalName: String,    // original filename from the uploader
+    mimeType: String,
+    size: Number,            // bytes
+    uploadedAt: Date
+  },
   status: {
     type: String,
     enum: ['todo', 'inprogress', 'done'],

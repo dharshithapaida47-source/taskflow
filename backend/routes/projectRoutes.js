@@ -1,8 +1,9 @@
 const express = require('express');
-const { 
-  getAllProjects, 
-  createProject, 
-  getProjectById, 
+const {
+  getAllProjects,
+  createProject,
+  getProjectById,
+  getProjectProgress,
   updateProject,
   deleteProject,
   addMemberToProject,
@@ -17,6 +18,7 @@ router.use(protect); // All routes require authentication
 router.get('/', getAllProjects);
 router.post('/', adminOnly, createProject);
 router.get('/:id', getProjectById);
+router.get('/:id/progress', getProjectProgress);
 router.put('/:id', adminOnly, updateProject);
 router.delete('/:id', adminOnly, deleteProject);
 router.post('/:id/members', adminOnly, addMemberToProject);

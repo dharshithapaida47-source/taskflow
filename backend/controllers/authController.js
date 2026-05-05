@@ -93,39 +93,56 @@ exports.signup = async (req, res) => {
 // @access  Public
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     // Check if email and password are provided
     if (!email || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please provide both email and password' 
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide both email and password'
       });
     }
 
     // Validate email format
     if (!validateEmail(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please provide a valid email address' 
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address'
+      });
+    }
+
+    // If a role was specified at login, it must be valid
+    if (role !== undefined && !['admin', 'member'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Role must be either admin or member'
       });
     }
 
     // Find user and include password (normally hidden)
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Email or password is incorrect' 
+      return res.status(401).json({
+        success: false,
+        message: 'Email or password is incorrect'
       });
     }
 
     // Compare entered password with stored hash
     const isPasswordMatch = await user.matchPassword(password);
     if (!isPasswordMatch) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Email or password is incorrect' 
+      return res.status(401).json({
+        success: false,
+        message: 'Email or password is incorrect'
+      });
+    }
+
+    // If the login form picked a role, it must match the stored role.
+    if (role && role !== user.role) {
+      const friendly = user.role === 'admin' ? 'Admin' : 'Member';
+      return res.status(403).json({
+        success: false,
+        message: `This account is registered as a ${friendly}. Please switch the role selector and try again.`
       });
     }
 

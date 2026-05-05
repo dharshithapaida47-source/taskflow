@@ -1,0 +1,49 @@
+.task-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.task-edit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.task-edit-existing-attachment {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.task-edit-existing-attachment-meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-edit-existing-attachment-name {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.task-edit-existing-attachment-size {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 520px) {
+  .task-edit-row {
+    grid-template-columns: 1fr;
+  }
+}

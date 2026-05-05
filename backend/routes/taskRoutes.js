@@ -1,12 +1,14 @@
 const express = require('express');
-const { 
-  getAllTasks, 
+const {
+  getAllTasks,
   getTasksByProject,
-  createTask, 
+  createTask,
   updateTask,
-  deleteTask
+  deleteTask,
+  downloadTaskAttachment
 } = require('../controllers/taskController');
 const { protect, adminOnly } = require('../middleware/auth');
+const { singleAttachment } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -14,8 +16,9 @@ router.use(protect); // All routes require authentication
 
 router.get('/', getAllTasks);
 router.get('/project/:projectId', getTasksByProject);
-router.post('/', adminOnly, createTask);
-router.put('/:id', updateTask);
+router.post('/', adminOnly, singleAttachment, createTask);
+router.put('/:id', singleAttachment, updateTask);
 router.delete('/:id', adminOnly, deleteTask);
+router.get('/:id/attachment', downloadTaskAttachment);
 
 module.exports = router;

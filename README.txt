@@ -1,92 +1,136 @@
 TASKFLOW - TEAM TASK MANAGER
 ============================
 
-A full-stack web app where teams create projects, assign tasks, and track
-progress with role-based access control (Admin / Member).
+A full-stack web app where teams create projects, assign tasks with file
+attachments, and track progress in real time -- with role-based access for
+admins and members.
 
-Stack: React 18 + Node.js/Express + MongoDB + JWT.
+Stack:   React 18 + Node.js + Express + MongoDB + JWT
+Deploy:  Railway + MongoDB Atlas
+License: ISC
+
+
+PROJECT OVERVIEW
+================
+
+TaskFlow is a small but production-style team task manager. Admins create
+projects, build teams, and hand out work -- including PDF or Word specs
+uploaded straight to a task. Members see only what's assigned to them, work
+through their kanban, and update task status as they go.
+
+The app is intentionally beginner-friendly to read: a clean Express backend
+with controllers/routes/models, a React frontend with hooks + context, and a
+single design-token CSS file that powers both light and dark mode.
 
 
 FEATURES
---------
+========
 
 Authentication
-  - Sign up / log in with JWT, bcrypt-hashed passwords
-  - 401 interceptor auto-redirects expired sessions
+--------------
+- Sign up / log in with JWT
+- Bcrypt-hashed passwords
+- Role selector at login (Admin or Member); backend rejects mismatches
+- 401 interceptor auto-redirects expired sessions
 
-Projects & Teams
-  - Admins create projects with name + description
-  - Add/remove team members per project
-  - Cascade-delete tasks when a project is deleted
+Projects & teams
+----------------
+- Admins create projects with name + description
+- Add or remove team members per project
+- Members see only their projects in "My Projects"
+- Click a project -> see each member's task progress and completion %
 
 Tasks
-  - Create, assign, set due date
-  - Status workflow: To Do -> In Progress -> Done
-  - Members can update the status of tasks assigned to them
-  - Admins can create / reassign / delete any task
-  - OVERDUE indicator for tasks past their due date that are not Done
+-----
+- Create, edit, reassign, delete (admin)
+- Work types: Frontend, Backend, Fullstack, Testing, Design
+- Due date with time picker
+- File attachments: PDF / Word / TXT / PNG / JPG, up to 10 MB
+- Edit modal (admin only): change every field, replace or remove file
+- Auto-add to project: assigning to a non-member silently adds them
+- Three statuses: Pending -> In Progress -> Completed
+- Overdue is automatic (derived from dueDate; no cron needed)
 
 Dashboard
-  - Stats: Overdue, To Do, In Progress, Done
-  - Three-column task board grouped by status
-  - Pagination (20 tasks/page)
-  - Members see only their tasks; admins see everything
+---------
+- Stat cards: Pending, In Progress, Completed, Overdue
+- Three-column kanban board grouped by status
+- Filter by work type (chips)
+- Click any task card -> detail modal with download button if there's a file
+- Pagination (20 tasks per page)
 
-Security
-  - helmet for HTTP security headers
-  - express-rate-limit: 300 req / 15 min global
-                        10 req / 15 min on /api/auth/* (brute-force defense)
-  - CORS whitelist via FRONTEND_URL env var
-  - Server-side validation on every endpoint
+Permission model
+----------------
+                            Admin       Member
+View tasks                  All         Only their own
+Create / delete tasks       Yes         No
+Reassign tasks              Yes (auto-adds to project)
+Replace / remove files      Yes         No
+Update task STATUS          NO          YES (only their own)
+Manage projects             Yes         No
 
 Polish
-  - Dark / light mode with a sliding toggle (persists in localStorage,
-    falls back to OS preference, respects prefers-reduced-motion)
-  - Subtle page-enter and stagger animations
-  - Modal "New Task" flow with description, calendar date picker, and
-    clickable team-member picker
+------
+- Dark / light mode (sliding toggle, localStorage, OS preference)
+- Page-enter and stagger animations
+- Modal-based task creation/editing with animated user picker
+- Modern login/signup with animated brand panel + product preview
+
+Security
+--------
+- helmet for HTTP security headers
+- express-rate-limit:
+    300 requests / 15 min globally
+     10 requests / 15 min on /api/auth/* (brute-force defense)
+- CORS whitelist via FRONTEND_URL env var
+- Server-side validation on every endpoint
+- File-type and size guards on uploads
+- The protect middleware re-reads role from MongoDB on every request, so a
+  JWT can never lie about role
 
 Quality
-  - 28 Jest unit tests on validators, pagination, response handler
-  - React error boundary
-  - Memoized components and useMemo filtering
+-------
+- 28 Jest unit tests on validators, pagination, response handler
+- React error boundary
+- useMemo + React.memo for fast re-renders
 
 
-PROJECT STRUCTURE
------------------
+TECH STACK
+==========
 
-task-manager/
-  backend/
-    controllers/     auth, projects, tasks, users
-    routes/          Express routers
-    models/          User, Project, Task (Mongoose)
-    middleware/      JWT auth + role guard
-    utils/           validators, pagination, response helpers (+ tests)
-    scripts/         seedAdmin.js
-    server.js
-  frontend/
-    src/
-      pages/         Login, Signup, Dashboard, Projects
-      components/    TopHeader, Sidebar, TaskItem, TaskList,
-                     Modal, UserPicker, ThemeToggle, Icons,
-                     AuthBrandPanel, Skeleton, ErrorBoundary
-      context/       AuthContext, ThemeContext
-      styles/        theme.css (design tokens + dark mode)
-      utils/         api.js
-  README.md
-  README.txt
+Frontend       React 18, React Router v6, Axios
+Backend        Node.js, Express, Mongoose
+Database       MongoDB
+Auth           JWT, bcryptjs
+File uploads   multer (disk storage, 10 MB limit)
+Security       helmet, express-rate-limit, CORS whitelist
+Tests          Jest
+Styling        Plain CSS with custom properties
 
 
-RUNNING LOCALLY
----------------
+SETUP INSTRUCTIONS
+==================
 
-Prereqs: Node.js 18+, MongoDB on localhost:27017
+Prerequisites
+-------------
+- Node.js v18 or higher
+- MongoDB on localhost:27017 (or any MongoDB connection string)
+- npm
 
-1. Backend
+1. Clone the repo
+   git clone https://github.com/paidadharshitha/Taskflow.git
+   cd Taskflow
+
+2. Start MongoDB
+   On macOS (Homebrew):
+     mongod --config /opt/homebrew/etc/mongod.conf
+   On Linux/Windows: see https://www.mongodb.com/docs/manual/installation/
+
+3. Set up the backend
    cd backend
-   cp .env.example .env
+   cp .env.example .env       # then edit .env
    npm install
-   npm run dev          # http://localhost:5000
+   npm run dev                # http://localhost:5000
 
    .env keys:
      PORT=5000
@@ -95,31 +139,106 @@ Prereqs: Node.js 18+, MongoDB on localhost:27017
      NODE_ENV=development
      FRONTEND_URL=http://localhost:3000
 
-2. Frontend
-   cd frontend
-   cp .env.example .env
-   npm install
-   npm start            # http://localhost:3000
+   Tip: generate a strong JWT secret with
+     node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
-3. Seed an admin (optional)
+4. Set up the frontend (in a new terminal)
+   cd frontend
+   cp .env.example .env       # set REACT_APP_API_URL if needed
+   npm install
+   npm start                  # http://localhost:3000
+
+5. Seed the demo admin (optional)
    cd backend
    node scripts/seedAdmin.js
-   # Creates/upgrades admin@example.com / Admin12345
+   # creates/upgrades admin@example.com / Admin12345
 
-4. Run tests
+6. Run the tests
    cd backend
-   npm test
+   npm test                   # 28 tests, all passing
 
 
-DEPLOYING TO RAILWAY
---------------------
+DEMO CREDENTIALS
+================
 
-1. MongoDB Atlas (free M0 cluster)
+After running scripts/seedAdmin.js:
+
+  Role:     Admin
+  Email:    admin@example.com
+  Password: Admin12345
+
+CHANGE THIS PASSWORD (or delete the seed script) BEFORE PRODUCTION.
+
+To create a member account, use the Sign up flow at /signup -- every new
+account starts as a Member by default.
+
+
+API ENDPOINTS
+=============
+
+All endpoints (except /signup and /login) require:
+  Authorization: Bearer <token>
+
+Auth
+----
+  POST   /api/auth/signup            { name, email, password }
+  POST   /api/auth/login             { email, password, role }
+                                     (role must match the stored role)
+  GET    /api/auth/me                current user
+
+Users
+-----
+  GET    /api/users                  authenticated
+  POST   /api/users                  admin -- creates a new user
+  GET    /api/users/:id              authenticated
+  PUT    /api/users/:id/promote      admin
+  PUT    /api/users/:id/demote       admin
+
+Projects
+--------
+  GET    /api/projects?page=1&limit=20         only projects you belong to
+  POST   /api/projects                          admin
+  GET    /api/projects/:id                      authenticated
+  GET    /api/projects/:id/progress             per-member task progress
+  PUT    /api/projects/:id                      project owner
+  DELETE /api/projects/:id                      project owner (cascade-deletes
+                                                tasks)
+  POST   /api/projects/:id/members              project owner
+  DELETE /api/projects/:id/members/:memberId    project owner
+
+Tasks
+-----
+  GET    /api/tasks?page=1&limit=20&workType=frontend
+                                     members get only assigned tasks;
+                                     admins get all
+  GET    /api/tasks/project/:projectId
+  POST   /api/tasks                  admin -- multipart with optional
+                                     `attachment` file
+  PUT    /api/tasks/:id              admin or assignee
+                                       members can only change status;
+                                       admins can change anything EXCEPT
+                                       status
+                                     Multipart accepted for replacing the
+                                     attachment, or send
+                                     `removeAttachment: true` to clear it
+  DELETE /api/tasks/:id              admin (also deletes file from disk)
+  GET    /api/tasks/:id/attachment   admin or assignee
+                                     streams the file with original filename
+
+
+DEPLOYMENT (Railway)
+====================
+
+Railway needs a hosted MongoDB. Easiest free path: MongoDB Atlas (free M0
+cluster). File uploads are stored on disk and won't survive a redeploy --
+for real production, swap the storage layer to S3 / Cloudinary.
+
+1. MongoDB Atlas
    - Create a database user
    - Network Access: allow 0.0.0.0/0
    - Copy the connection string
 
-2. Push code to GitHub
+2. Push to GitHub
    git add .
    git commit -m "Initial commit"
    git remote add origin https://github.com/<you>/<repo>.git
@@ -148,47 +267,35 @@ DEPLOYING TO RAILWAY
 
 6. Seed admin via Railway shell:
    node scripts/seedAdmin.js
-   Log in, change password.
+   Log in, then change the password.
 
 
-DEFAULT ADMIN (local only)
---------------------------
+PROJECT STRUCTURE
+=================
 
-After running scripts/seedAdmin.js:
-  Email:    admin@example.com
-  Password: Admin12345
+Taskflow/
+  backend/
+    controllers/       auth, users, projects, tasks
+    routes/            Express routers
+    models/            User, Project, Task (Mongoose)
+    middleware/        auth (JWT), upload (multer)
+    utils/             validators, pagination, response helpers (+ tests)
+    scripts/           seedAdmin.js
+    uploads/           task attachment files (gitignored)
+    server.js          Express app entrypoint
+  frontend/
+    src/
+      pages/           Login, Signup, Dashboard, Projects
+      components/      TopHeader, Sidebar, TaskItem, Modal,
+                       TaskDetailModal, TaskEditModal, UserPicker,
+                       ThemeToggle, AuthBrandPanel, Skeleton, Icons,
+                       ErrorBoundary
+      context/         AuthContext, ThemeContext
+      styles/          theme.css (design tokens + dark mode)
+      utils/           api.js (axios instance + endpoint functions)
 
-CHANGE THIS IN PRODUCTION.
 
+LICENSE
+=======
 
-API REFERENCE
--------------
-
-All endpoints (except signup/login) require:
-  Authorization: Bearer <token>
-
-Auth
-  POST   /api/auth/signup       { name, email, password }
-  POST   /api/auth/login        { email, password }
-  GET    /api/auth/me           current user
-
-Users
-  GET    /api/users
-  PUT    /api/users/:id/promote     (admin)
-  PUT    /api/users/:id/demote      (admin)
-
-Projects
-  GET    /api/projects?page=1&limit=20
-  POST   /api/projects                    (admin)
-  GET    /api/projects/:id
-  PUT    /api/projects/:id                (project owner)
-  DELETE /api/projects/:id                (project owner; cascades to tasks)
-  POST   /api/projects/:id/members        (project owner)
-  DELETE /api/projects/:id/members/:memberId   (project owner)
-
-Tasks
-  GET    /api/tasks?page=1&limit=20       (members: assigned only; admins: all)
-  GET    /api/tasks/project/:projectId
-  POST   /api/tasks                        (admin)
-  PUT    /api/tasks/:id                    (admin or assignee for status)
-  DELETE /api/tasks/:id                    (admin)
+ISC -- see LICENSE file for details.

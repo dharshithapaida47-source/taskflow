@@ -8,6 +8,7 @@ import './Auth.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [role, setRole] = useState('member');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -26,7 +27,7 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await login(formData);
+      const response = await login({ ...formData, role });
       setSession(response.data.user, response.data.token);
       navigate('/dashboard');
     } catch (err) {
@@ -58,6 +59,30 @@ const Login = () => {
           <p className="auth-subheading">Enter your credentials to continue.</p>
 
           <form onSubmit={handleSubmit} noValidate>
+            <div className="form-group">
+              <span className="form-label">Sign in as</span>
+              <div className="role-toggle" role="radiogroup" aria-label="Sign in as">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={role === 'member'}
+                  className={`role-toggle-option${role === 'member' ? ' is-active' : ''}`}
+                  onClick={() => setRole('member')}
+                >
+                  Member
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={role === 'admin'}
+                  className={`role-toggle-option${role === 'admin' ? ' is-active' : ''}`}
+                  onClick={() => setRole('admin')}
+                >
+                  Admin
+                </button>
+              </div>
+            </div>
+
             <div className="form-group">
               <label className="form-label" htmlFor="login-email">Email</label>
               <input

@@ -13,6 +13,8 @@ import { SkeletonTaskCard, SkeletonStatsRow } from '../components/Skeleton';
 import { InboxIcon, PlayIcon, CheckIcon, AlertIcon, PlusIcon } from '../components/Icons';
 import Modal from '../components/Modal';
 import UserPicker from '../components/UserPicker';
+import TaskDetailModal from '../components/TaskDetailModal';
+import TaskEditModal from '../components/TaskEditModal';
 import './Dashboard.css';
 
 const TASKS_PER_PAGE = 20;
@@ -59,10 +61,23 @@ const Dashboard = () => {
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
+    workType: 'fullstack',
     projectId: '',
     assigneeId: '',
     dueDate: ''
   });
+  const [attachment, setAttachment] = useState(null);
+  const [workTypeFilter, setWorkTypeFilter] = useState('');
+  const [openTask, setOpenTask] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
+
+  const handleOpenTask = useCallback((task) => setOpenTask(task), []);
+  const closeTaskDetail = () => setOpenTask(null);
+  const handleEditTask = (task) => {
+    setOpenTask(null);
+    setEditingTask(task);
+  };
+  const closeEditTask = () => setEditingTask(null);
 
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -79,7 +94,9 @@ const Dashboard = () => {
 
   const loadTasks = useCallback(async (targetPage = page) => {
     try {
-      const response = await getAllTasks({ page: targetPage, limit: TASKS_PER_PAGE });
+      const params = { page: targetPage, limit: TASKS_PER_PAGE };
+      if (workTypeFilter) params.workType = workTypeFilter;
+      const response = await getAllTasks(params);
       const payload = response.data.data || response.data;
       setTasks(payload.tasks || []);
       setTotalPages(payload.pages || 1);
@@ -87,7 +104,7 @@ const Dashboard = () => {
     } catch (err) {
       flashError('Failed to load tasks');
     }
-  }, [page]);
+  }, [page, workTypeFilter]);
 
   const loadProjects = useCallback(async () => {
     try {
@@ -120,7 +137,7 @@ const Dashboard = () => {
     if (loading) return;
     loadTasks(page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, workTypeFilter]);
 
   const handleStatusChange = useCallback(async (taskId, newStatus) => {
     try {
@@ -144,7 +161,15 @@ const Dashboard = () => {
   }, [loadTasks, page]);
 
   const resetTaskForm = () => {
-    setNewTask({ title: '', description: '', projectId: '', assigneeId: '', dueDate: '' });
+    setNewTask({
+      title: '',
+      description: '',
+      workType: 'fullstack',
+      projectId: '',
+      assigneeId: '',
+      dueDate: ''
+    });
+    setAttachment(null);
   };
 
   const closeCreateModal = () => {
@@ -164,9 +189,11 @@ const Dashboard = () => {
       await createTask({
         title: newTask.title,
         description: newTask.description,
+        workType: newTask.workType,
         projectId: newTask.projectId,
         assigneeId: newTask.assigneeId,
-        dueDate: newTask.dueDate || null
+        dueDate: newTask.dueDate || null,
+        attachment // File or null — handled by api.js
       });
       flashSuccess('Task created');
       resetTaskForm();
@@ -191,16 +218,36 @@ const Dashboard = () => {
     [tasks]
   );
 
+  // Show all users in the picker so admin can assign to anyone.
+  // Project members (and the project admin) are listed first as a hint,
+  // and non-members get auto-added to the project on the backend.
   const assignableUsers = useMemo(() => {
     if (!newTask.projectId) return users;
     const project = projects.find((p) => p._id === newTask.projectId);
     if (!project) return users;
-    const allowedIds = new Set([
+    const memberIds = new Set([
       project.admin?._id || project.admin,
       ...(project.members || []).map((m) => m._id || m)
     ]);
-    return users.filter((u) => allowedIds.has(u._id));
+    return [...users].sort((a, b) => {
+      const aIn = memberIds.has(a._id) ? 0 : 1;
+      const bIn = memberIds.has(b._id) ? 0 : 1;
+      if (aIn !== bIn) return aIn - bIn;
+      return a.name.localeCompare(b.name);
+    });
   }, [newTask.projectId, projects, users]);
+
+  // Whether the currently picked assignee is already on the project's team
+  const assigneeIsTeamMember = useMemo(() => {
+    if (!newTask.projectId || !newTask.assigneeId) return true;
+    const project = projects.find((p) => p._id === newTask.projectId);
+    if (!project) return true;
+    const memberIds = new Set([
+      project.admin?._id || project.admin,
+      ...(project.members || []).map((m) => m._id || m)
+    ]);
+    return memberIds.has(newTask.assigneeId);
+  }, [newTask.projectId, newTask.assigneeId, projects]);
 
   const userRole = isAdmin ? 'admin' : 'member';
   const noProjectsYet = isAdmin && projects.length === 0;
@@ -233,6 +280,7 @@ const Dashboard = () => {
       task={task}
       onStatusChange={handleStatusChange}
       onDelete={handleDeleteTask}
+      onOpen={handleOpenTask}
       userRole={userRole}
     />
   );
@@ -273,7 +321,7 @@ const Dashboard = () => {
       <div className="dashboard-stats">
         <div className="stat-card stat-card-todo">
           <div className="stat-card-header">
-            <span className="stat-card-label">To Do</span>
+            <span className="stat-card-label">Pending</span>
             <span className="stat-card-icon"><InboxIcon /></span>
           </div>
           <div className="stat-card-value">{grouped.todo.length}</div>
@@ -358,6 +406,44 @@ const Dashboard = () => {
               />
             </div>
 
+            <div className="form-group">
+              <label className="form-label" htmlFor="task-attachment">
+                Attach a file <span className="form-label-hint">(optional — PDF, Word, TXT, PNG, JPG · max 10 MB)</span>
+              </label>
+              {!attachment ? (
+                <label htmlFor="task-attachment" className="file-dropzone">
+                  <span className="file-dropzone-icon" aria-hidden="true">📎</span>
+                  <span className="file-dropzone-text">
+                    <strong>Click to upload</strong> a spec or requirements document
+                  </span>
+                  <input
+                    id="task-attachment"
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,image/png,image/jpeg"
+                    onChange={(e) => setAttachment(e.target.files?.[0] || null)}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              ) : (
+                <div className="file-selected">
+                  <span className="file-selected-icon" aria-hidden="true">📎</span>
+                  <span className="file-selected-meta">
+                    <span className="file-selected-name">{attachment.name}</span>
+                    <span className="file-selected-size">
+                      {(attachment.size / 1024).toFixed(1)} KB
+                    </span>
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => setAttachment(null)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="dashboard-form-row">
               <div className="form-group">
                 <label className="form-label" htmlFor="task-project">Project *</label>
@@ -378,39 +464,86 @@ const Dashboard = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label" htmlFor="task-due">Due date</label>
-                <input
-                  id="task-due"
-                  type="date"
+                <label className="form-label" htmlFor="task-worktype">Work type *</label>
+                <select
+                  id="task-worktype"
                   className="form-control"
-                  value={newTask.dueDate}
-                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                />
+                  value={newTask.workType}
+                  onChange={(e) => setNewTask({ ...newTask, workType: e.target.value })}
+                  required
+                >
+                  <option value="frontend">Frontend</option>
+                  <option value="backend">Backend</option>
+                  <option value="fullstack">Fullstack</option>
+                  <option value="testing">Testing</option>
+                  <option value="design">Design</option>
+                </select>
               </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="task-due">Due date &amp; time</label>
+              <input
+                id="task-due"
+                type="datetime-local"
+                className="form-control"
+                value={newTask.dueDate}
+                onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+              />
             </div>
 
             <div className="form-group">
               <label className="form-label">Assign to *</label>
               {!newTask.projectId ? (
                 <div className="user-picker-empty">
-                  Pick a project above to see its members.
+                  Pick a project above to see its team.
                 </div>
               ) : (
-                <UserPicker
-                  users={assignableUsers}
-                  selectedId={newTask.assigneeId}
-                  onSelect={(id) => setNewTask({ ...newTask, assigneeId: id })}
-                  emptyMessage="This project has no members yet. Add one from the Projects tab."
-                />
+                <>
+                  <UserPicker
+                    users={assignableUsers}
+                    selectedId={newTask.assigneeId}
+                    onSelect={(id) => setNewTask({ ...newTask, assigneeId: id })}
+                    emptyMessage="No users available."
+                  />
+                  {newTask.assigneeId && !assigneeIsTeamMember && (
+                    <div className="assignee-auto-add-hint">
+                      ℹ️ This user isn't on the project team yet — they'll be
+                      added automatically when you create the task.
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </form>
         </Modal>
       )}
 
+      <div className="worktype-filter" role="tablist" aria-label="Filter by work type">
+        {[
+          { value: '', label: 'All work' },
+          { value: 'frontend', label: 'Frontend' },
+          { value: 'backend', label: 'Backend' },
+          { value: 'fullstack', label: 'Fullstack' },
+          { value: 'testing', label: 'Testing' },
+          { value: 'design', label: 'Design' }
+        ].map((opt) => (
+          <button
+            type="button"
+            key={opt.value || 'all'}
+            role="tab"
+            aria-selected={workTypeFilter === opt.value}
+            className={`worktype-chip${workTypeFilter === opt.value ? ' is-active' : ''}`}
+            onClick={() => { setPage(1); setWorkTypeFilter(opt.value); }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       <div className="kanban-board">
         <KanbanColumn
-          title="To Do"
+          title="Pending"
           dotClass="kanban-column-dot-todo"
           count={grouped.todo.length}
           emptyIcon="📥"
@@ -460,6 +593,29 @@ const Dashboard = () => {
             Next →
           </button>
         </div>
+      )}
+
+      <TaskDetailModal
+        open={!!openTask}
+        task={openTask}
+        onClose={closeTaskDetail}
+        canEdit={isAdmin}
+        onEdit={handleEditTask}
+      />
+
+      {isAdmin && (
+        <TaskEditModal
+          open={!!editingTask}
+          task={editingTask}
+          projects={projects}
+          users={users}
+          onClose={closeEditTask}
+          onSaved={async () => {
+            closeEditTask();
+            flashSuccess('Task updated');
+            await loadTasks(page);
+          }}
+        />
       )}
     </div>
   );

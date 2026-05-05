@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const { errorResponse, successResponse } = require('../utils/responseHandler');
-const { validateMongoId } = require('../utils/validators');
+const { validateMongoId, validateEmail, validatePassword } = require('../utils/validators');
 
 // @route   GET /api/users
 // @desc    Get all users (for admin to assign tasks)
@@ -32,6 +32,51 @@ exports.getUserById = async (req, res) => {
     successResponse(res, 200, 'User fetched successfully', user);
   } catch (error) {
     errorResponse(res, 500, 'Error fetching user', error.message);
+  }
+};
+
+// @route   POST /api/users
+// @desc    Admin creates a new user account directly (with chosen role)
+// @access  Private/Admin
+exports.createUser = async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body;
+
+    if (!name || !name.trim()) {
+      return errorResponse(res, 400, 'Name is required');
+    }
+    if (!validateEmail(email)) {
+      return errorResponse(res, 400, 'A valid email is required');
+    }
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      return errorResponse(res, 400, passwordCheck.message);
+    }
+    const finalRole = role === 'admin' ? 'admin' : 'member';
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) {
+      return errorResponse(res, 409, 'A user with this email already exists');
+    }
+
+    const user = await User.create({
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      password,
+      role: finalRole
+    });
+
+    successResponse(res, 201, 'User created successfully', {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return errorResponse(res, 400, 'Validation error', error.message);
+    }
+    errorResponse(res, 500, 'Error creating user', error.message);
   }
 };
 

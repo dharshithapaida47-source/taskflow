@@ -3,23 +3,48 @@ import { FolderTagIcon, UserIcon, CalendarIcon, TrashIcon } from './Icons';
 import './TaskItem.css';
 
 const statusBadgeMap = {
-  todo: { className: 'badge badge-todo', label: 'To Do' },
+  todo: { className: 'badge badge-todo', label: 'Pending' },
   inprogress: { className: 'badge badge-inprogress', label: 'In Progress' },
-  done: { className: 'badge badge-done', label: 'Done' }
+  done: { className: 'badge badge-done', label: 'Completed' }
+};
+
+const workTypeLabelMap = {
+  frontend: 'Frontend',
+  backend: 'Backend',
+  fullstack: 'Fullstack',
+  testing: 'Testing',
+  design: 'Design'
 };
 
 const formatDate = (date) => {
   if (!date) return 'No due date';
-  return new Date(date).toLocaleDateString(undefined, {
+  const d = new Date(date);
+  // Show date + time if a meaningful time is present (not midnight)
+  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0;
+  return d.toLocaleString(undefined, {
     year: 'numeric',
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
+    ...(hasTime ? { hour: '2-digit', minute: '2-digit' } : {})
   });
 };
 
-const TaskItem = ({ task, onStatusChange, onDelete, userRole }) => {
+const TaskItem = ({ task, onStatusChange, onDelete, onOpen, userRole }) => {
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const handleCardClick = (e) => {
+    // Ignore clicks that originate from interactive controls inside the card
+    if (e.target.closest('select, button, a, input')) return;
+    onOpen?.(task);
+  };
+
+  const handleCardKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpen?.(task);
+    }
+  };
 
   const isOverdue =
     task.dueDate &&
@@ -51,15 +76,31 @@ const TaskItem = ({ task, onStatusChange, onDelete, userRole }) => {
 
   return (
     <article
-      className={`task-item ${statusClass}${isOverdue ? ' task-item-overdue' : ''}`}
+      className={`task-item ${statusClass}${isOverdue ? ' task-item-overdue' : ''}${onOpen ? ' is-clickable' : ''}`}
+      onClick={onOpen ? handleCardClick : undefined}
+      onKeyDown={onOpen ? handleCardKey : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      role={onOpen ? 'button' : undefined}
+      aria-label={onOpen ? `Open task ${task.title}` : undefined}
     >
       <div className="task-item-header">
         <div className="task-item-title">{task.title}</div>
         <div className="task-item-badges">
+          {task.attachment?.filename && (
+            <span className="badge badge-member" title={`Has attachment: ${task.attachment.originalName || ''}`}>
+              📎 File
+            </span>
+          )}
           {isOverdue && <span className="badge badge-overdue">Overdue</span>}
           <span className={status.className}>{status.label}</span>
         </div>
       </div>
+
+      {task.workType && (
+        <div className="task-item-worktype" data-type={task.workType}>
+          {workTypeLabelMap[task.workType] || task.workType}
+        </div>
+      )}
 
       {task.description && (
         <p className="task-item-description">{task.description}</p>
@@ -91,12 +132,13 @@ const TaskItem = ({ task, onStatusChange, onDelete, userRole }) => {
           className="form-control"
           value={task.status}
           onChange={handleStatusChange}
-          disabled={updating}
+          disabled={updating || userRole === 'admin'}
+          title={userRole === 'admin' ? 'Only the assigned member can change status' : ''}
           aria-label={`Change status of ${task.title}`}
         >
-          <option value="todo">To Do</option>
+          <option value="todo">Pending</option>
           <option value="inprogress">In Progress</option>
-          <option value="done">Done</option>
+          <option value="done">Completed</option>
         </select>
         {userRole === 'admin' && (
           <button

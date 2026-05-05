@@ -1,0 +1,100 @@
+.task-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.task-detail-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-alt);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.task-detail-meta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-detail-meta-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.task-detail-meta-value {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.task-detail-description {
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-detail-description.is-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.task-detail-attachment {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+}
+
+.task-detail-attachment-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary-soft);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 22px;
+}
+
+.task-detail-attachment-meta {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.task-detail-attachment-name {
+  font-weight: 600;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.task-detail-attachment-size {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 520px) {
+  .task-detail-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -36,6 +36,24 @@ const AuthBrandPanel = ({ headline, subhead }) => (
           </li>
         ))}
       </ul>
+
+      {/* Floating product preview — gives the brand panel a tangible glimpse
+          of what TaskFlow actually looks like inside the app. */}
+      <div className="auth-preview-card" aria-hidden="true">
+        <div className="auth-preview-header">
+          <span>Frontend</span>
+          <span className="auth-preview-status-pill">In Progress</span>
+        </div>
+        <div className="auth-preview-title">Build hero section</div>
+        <div className="auth-preview-meta">Due in 3 days · assigned to Alice</div>
+        <div className="auth-preview-progress-track">
+          <div className="auth-preview-progress-fill" />
+        </div>
+        <div className="auth-preview-row">
+          <span>2 of 3 subtasks done</span>
+          <span>68%</span>
+        </div>
+      </div>
     </div>
 
     <div className="auth-brand-footer">

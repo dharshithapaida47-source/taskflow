@@ -6,10 +6,12 @@ import {
   deleteProject,
   addProjectMember,
   removeProjectMember,
-  getAllUsers
+  getAllUsers,
+  getProjectProgress
 } from '../utils/api';
 import { SkeletonProjectGrid } from '../components/Skeleton';
 import { PlusIcon, TrashIcon } from '../components/Icons';
+import Modal from '../components/Modal';
 import './Projects.css';
 
 const Projects = () => {
@@ -23,6 +25,32 @@ const Projects = () => {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: '', description: '' });
   const [memberInputs, setMemberInputs] = useState({}); // { [projectId]: userId }
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [progressLoading, setProgressLoading] = useState(false);
+  const [progressData, setProgressData] = useState(null);
+
+  const openProgress = useCallback(async (project) => {
+    setProgressOpen(true);
+    setProgressLoading(true);
+    setProgressData({ project: { name: project.name }, members: [], totals: null });
+    try {
+      const response = await getProjectProgress(project._id);
+      const payload = response.data.data || response.data;
+      setProgressData(payload);
+    } catch (err) {
+      setProgressData(null);
+      setProgressOpen(false);
+      setError(err.response?.data?.message || 'Failed to load project progress');
+      setTimeout(() => setError(''), 4000);
+    } finally {
+      setProgressLoading(false);
+    }
+  }, []);
+
+  const closeProgress = () => {
+    setProgressOpen(false);
+    setProgressData(null);
+  };
 
   const flashSuccess = (msg) => {
     setSuccess(msg);
@@ -197,7 +225,7 @@ const Projects = () => {
       <div>
         <div className="projects-header">
           <div>
-            <h1 className="section-title">Projects</h1>
+            <h1 className="section-title">My Projects</h1>
             <p className="section-subtitle">Loading…</p>
           </div>
         </div>
@@ -210,11 +238,11 @@ const Projects = () => {
     <div>
       <div className="projects-header">
         <div>
-          <h1 className="section-title">Projects</h1>
+          <h1 className="section-title">My Projects</h1>
           <p className="section-subtitle">
             {isAdmin
-              ? 'Create projects, add team members, and assign tasks.'
-              : 'Browse the projects you belong to.'}
+              ? 'Projects you administer or belong to. Create new ones and manage your teams.'
+              : 'Projects you have been added to.'}
           </p>
         </div>
         {isAdmin && !showCreate && (
@@ -318,8 +346,14 @@ const Projects = () => {
                     <div className="project-card-description">{project.description}</div>
                   )}
                   {renderMembers(project)}
-                  {isAdmin && isProjectOwner && (
-                    <div className="project-card-actions">
+                  <div className="project-card-actions">
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => openProgress(project)}
+                    >
+                      View progress
+                    </button>
+                    {isAdmin && isProjectOwner && (
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => handleDelete(project)}
@@ -328,14 +362,91 @@ const Projects = () => {
                         <TrashIcon width={14} height={14} />
                         Delete project
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      <Modal
+        open={progressOpen}
+        title={progressData?.project?.name ? `Progress · ${progressData.project.name}` : 'Project progress'}
+        onClose={closeProgress}
+        size="lg"
+        footer={
+          <button type="button" className="btn btn-secondary" onClick={closeProgress}>
+            Close
+          </button>
+        }
+      >
+        {progressLoading ? (
+          <div className="loading-state">Loading team progress…</div>
+        ) : !progressData?.members?.length ? (
+          <div className="empty-state">
+            <div className="empty-state-text">No team members on this project yet.</div>
+          </div>
+        ) : (
+          <>
+            {progressData.totals && (
+              <div className="progress-totals">
+                <div>
+                  <strong>{progressData.totals.tasks}</strong> total tasks
+                </div>
+                <div>
+                  <strong>{progressData.totals.completed}</strong> completed
+                </div>
+                <div className={progressData.totals.overdue > 0 ? 'is-warning' : ''}>
+                  <strong>{progressData.totals.overdue}</strong> overdue
+                </div>
+              </div>
+            )}
+            <table className="progress-table">
+              <thead>
+                <tr>
+                  <th>Member</th>
+                  <th>Pending</th>
+                  <th>In Progress</th>
+                  <th>Completed</th>
+                  <th>Overdue</th>
+                  <th>%</th>
+                </tr>
+              </thead>
+              <tbody>
+                {progressData.members.map((row) => (
+                  <tr key={row.user._id}>
+                    <td>
+                      <div className="progress-member">
+                        <div className="progress-member-name">{row.user.name}</div>
+                        <div className="progress-member-email">{row.user.email}</div>
+                      </div>
+                    </td>
+                    <td><span className="badge badge-todo">{row.pending}</span></td>
+                    <td><span className="badge badge-inprogress">{row.inprogress}</span></td>
+                    <td><span className="badge badge-done">{row.completed}</span></td>
+                    <td>
+                      {row.overdue > 0
+                        ? <span className="badge badge-overdue">{row.overdue}</span>
+                        : <span className="muted">0</span>}
+                    </td>
+                    <td>
+                      <div className="progress-bar" aria-label={`${row.completionPct}% complete`}>
+                        <div
+                          className="progress-bar-fill"
+                          style={{ width: `${row.completionPct}%` }}
+                        />
+                        <span className="progress-bar-label">{row.completionPct}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+      </Modal>
     </div>
   );
 };
