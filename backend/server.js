@@ -51,7 +51,13 @@ const authLimiter = rateLimit({
 app.use('/api', apiLimiter);
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+const mongoUrl = process.env.MONGO_URL;
+if (!mongoUrl) {
+  console.error('Fatal: MONGO_URL environment variable is not defined. Ensure the MongoDB service is linked and provides MONGO_URL.');
+  process.exit(1);
+}
+
+mongoose.connect(mongoUrl)
   .then(() => {
     console.log('MongoDB connected');
 
