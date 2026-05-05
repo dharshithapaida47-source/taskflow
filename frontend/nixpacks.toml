@@ -1,0 +1,9 @@
+# Nixpacks build config for the frontend (Railway deployment).
+#
+# Default Nixpacks runs `npm ci`, which requires the lockfile to match
+# package.json *exactly* — strict mode that fails on transitive-dep
+# version drift. We use `npm install` instead so deploys are lenient
+# while still installing from the same lockfile when possible.
+
+[phases.install]
+cmds = ["npm install --legacy-peer-deps"]
