@@ -64,13 +64,20 @@ mongoose.connect(process.env.MONGODB_URI)
     app.use('/api/tasks', require('./routes/taskRoutes'));
 
     // ----- Serve the React frontend in production -----
-    // If frontend/build exists (i.e. the frontend has been built — done either
-    // by `npm run build` locally or by the postinstall hook on Railway), the
-    // backend also serves the SPA. Single URL hosts both API and UI.
-    const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'build');
-    const frontendIndex = path.join(frontendBuildPath, 'index.html');
+    // The buildFrontend.js postinstall hook copies the React build into
+    // backend/public/ so it lives inside Railway's root directory. Locally,
+    // we also fall back to ../frontend/build/ if the user just ran
+    // `npm run build` over there directly.
+    const candidatePaths = [
+      path.join(__dirname, 'public'),
+      path.join(__dirname, '..', 'frontend', 'build')
+    ];
+    const frontendBuildPath = candidatePaths.find((p) =>
+      fs.existsSync(path.join(p, 'index.html'))
+    );
 
-    if (fs.existsSync(frontendIndex)) {
+    if (frontendBuildPath) {
+      const frontendIndex = path.join(frontendBuildPath, 'index.html');
       app.use(express.static(frontendBuildPath));
 
       // Catch-all for client-side routes (anything NOT starting with /api)
