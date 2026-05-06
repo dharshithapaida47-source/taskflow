@@ -9,6 +9,10 @@ require('dotenv').config();
 
 const app = express();
 
+// Trust the first hop proxy (Railway/Vercel/etc) so req.ip and X-Forwarded-For
+// resolve correctly for express-rate-limit.
+app.set('trust proxy', 1);
+
 // Security headers (XSS, clickjacking, MIME sniffing, etc.)
 app.use(helmet());
 
