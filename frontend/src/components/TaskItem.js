@@ -29,7 +29,7 @@ const formatDate = (date) => {
   });
 };
 
-const TaskItem = ({ task, onStatusChange, onDelete, onOpen, userRole }) => {
+const TaskItem = ({ task, onStatusChange, onDelete, onOpen, userRole, onDragStart }) => {
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -74,14 +74,18 @@ const TaskItem = ({ task, onStatusChange, onDelete, onOpen, userRole }) => {
   const status = statusBadgeMap[task.status] || statusBadgeMap.todo;
   const statusClass = `task-item-status-${task.status}`;
 
+  const canDrag = userRole === 'member';
+
   return (
     <article
-      className={`task-item ${statusClass}${isOverdue ? ' task-item-overdue' : ''}${onOpen ? ' is-clickable' : ''}`}
+      className={`task-item ${statusClass}${isOverdue ? ' task-item-overdue' : ''}${onOpen ? ' is-clickable' : ''}${canDrag ? ' is-draggable' : ''}`}
       onClick={onOpen ? handleCardClick : undefined}
       onKeyDown={onOpen ? handleCardKey : undefined}
       tabIndex={onOpen ? 0 : undefined}
       role={onOpen ? 'button' : undefined}
       aria-label={onOpen ? `Open task ${task.title}` : undefined}
+      draggable={canDrag}
+      onDragStart={canDrag ? (e) => onDragStart?.(e, task) : undefined}
     >
       <div className="task-item-header">
         <div className="task-item-title">{task.title}</div>

@@ -25,28 +25,56 @@ const isTaskOverdue = (task) =>
   new Date(task.dueDate).getTime() < Date.now();
 
 const KanbanColumn = ({
-  title, dotClass, count, children, emptyIcon, emptyMessage
-}) => (
-  <div className="kanban-column">
-    <div className="kanban-column-header">
-      <div className="kanban-column-title">
-        <span className={`kanban-column-dot ${dotClass}`} />
-        {title}
-      </div>
-      <span className="kanban-column-count">{count}</span>
-    </div>
-    <div className="kanban-column-cards">
-      {count === 0 ? (
-        <div className="kanban-empty">
-          <span className="kanban-empty-icon" aria-hidden="true">{emptyIcon}</span>
-          <span>{emptyMessage}</span>
+  title, dotClass, count, children, emptyIcon, emptyMessage,
+  status, onDropTask, isDropTarget
+}) => {
+  const [isOver, setIsOver] = useState(false);
+
+  const handleDragOver = (e) => {
+    if (!isDropTarget) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isOver) setIsOver(true);
+  };
+  const handleDragLeave = () => setIsOver(false);
+  const handleDrop = (e) => {
+    if (!isDropTarget) return;
+    e.preventDefault();
+    setIsOver(false);
+    const taskId = e.dataTransfer.getData('text/plain');
+    const fromStatus = e.dataTransfer.getData('application/x-from-status');
+    if (taskId && fromStatus !== status) {
+      onDropTask?.(taskId, status);
+    }
+  };
+
+  return (
+    <div
+      className={`kanban-column${isOver ? ' is-drop-over' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="kanban-column-header">
+        <div className="kanban-column-title">
+          <span className={`kanban-column-dot ${dotClass}`} />
+          {title}
         </div>
-      ) : (
-        children
-      )}
+        <span className="kanban-column-count">{count}</span>
+      </div>
+      <div className="kanban-column-cards">
+        {count === 0 ? (
+          <div className="kanban-empty">
+            <span className="kanban-empty-icon" aria-hidden="true">{emptyIcon}</span>
+            <span>{emptyMessage}</span>
+          </div>
+        ) : (
+          children
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Dashboard = () => {
   const { user, isAdmin } = useAuth();
@@ -252,6 +280,16 @@ const Dashboard = () => {
   const userRole = isAdmin ? 'admin' : 'member';
   const noProjectsYet = isAdmin && projects.length === 0;
 
+  const handleTaskDragStart = useCallback((e, task) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', task._id);
+    e.dataTransfer.setData('application/x-from-status', task.status);
+  }, []);
+
+  const handleDropTask = useCallback((taskId, newStatus) => {
+    handleStatusChange(taskId, newStatus);
+  }, [handleStatusChange]);
+
   if (loading) {
     return (
       <div>
@@ -282,6 +320,7 @@ const Dashboard = () => {
       onDelete={handleDeleteTask}
       onOpen={handleOpenTask}
       userRole={userRole}
+      onDragStart={handleTaskDragStart}
     />
   );
 
@@ -548,6 +587,9 @@ const Dashboard = () => {
           count={grouped.todo.length}
           emptyIcon="📥"
           emptyMessage="No tasks waiting"
+          status="todo"
+          onDropTask={handleDropTask}
+          isDropTarget={!isAdmin}
         >
           {grouped.todo.map(renderTask)}
         </KanbanColumn>
@@ -558,6 +600,9 @@ const Dashboard = () => {
           count={grouped.inprogress.length}
           emptyIcon="🛠"
           emptyMessage="Nothing in progress"
+          status="inprogress"
+          onDropTask={handleDropTask}
+          isDropTarget={!isAdmin}
         >
           {grouped.inprogress.map(renderTask)}
         </KanbanColumn>
@@ -568,6 +613,9 @@ const Dashboard = () => {
           count={grouped.done.length}
           emptyIcon="🏁"
           emptyMessage="No completed tasks"
+          status="done"
+          onDropTask={handleDropTask}
+          isDropTarget={!isAdmin}
         >
           {grouped.done.map(renderTask)}
         </KanbanColumn>
